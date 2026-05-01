@@ -4,8 +4,8 @@ import string
 from pynini import SymbolTable, SymbolTableView
 
 from parser import Parser
-import wynini
-from wynini import *
+import wyfst
+from wyfst import *
 
 
 class Thompson():
@@ -41,31 +41,31 @@ class Thompson():
 
     # Concatenation.
     def buildDot(self, wfst1, wfst2):
-        wfst = wynini.concat(wfst1, wfst2)
+        wfst = wyfst.concat(wfst1, wfst2)
         return wfst
 
     # Disjunction.
     def buildPipe(self, wfst1, wfst2):
-        wfst = wynini.union(wfst1, wfst2)
+        wfst = wyfst.union(wfst1, wfst2)
         return wfst
 
     # Repetition.
     def buildPlus(self, wfst1):
-        wfst = wynini.plus(wfst1)
+        wfst = wyfst.plus(wfst1)
         return wfst
 
     def buildStar(self, wfst1):
-        wfst = wynini.star(wfst1)
+        wfst = wyfst.star(wfst1)
         return wfst
 
     # Optionality.
     def buildQues(self, wfst1):
-        wfst = wynini.ques(wfst1)
+        wfst = wyfst.ques(wfst1)
         return wfst
 
     # Consumption.
     def buildSeg(self, node):
-        wfst = wynini.accep(node[0], isymbols=self.isymbols, add_delim=False)
+        wfst = wyfst.accep(node[0], isymbols=self.isymbols, add_delim=False)
         return wfst
 
 

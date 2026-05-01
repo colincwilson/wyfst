@@ -40,8 +40,8 @@ def make_symtable(sigma=[]):
     """ Create symbol table from symbol list/set/tuple. """
     symtable = SymbolTable()
     symtable.add_symbol(epsilon)  # Symbol id 0 (OpenFst convention).
-    symtable.add_symbol(bos)  # Symbol id 1 (wynini convention).
-    symtable.add_symbol(eos)  # Symbol id 2 (wynini convention).
+    symtable.add_symbol(bos)  # Symbol id 1 (wyfst convention).
+    symtable.add_symbol(eos)  # Symbol id 2 (wyfst convention).
     for sym in special_syms:  # Special symbols.
         symtable.add_symbol(sym)
     for sym in sigma:  # Ordinary symbols.

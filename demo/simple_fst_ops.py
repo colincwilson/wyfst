@@ -1,7 +1,7 @@
 import sys
 
 sys.path.append('..')
-from wynini.simple_fst import *
+from wyfst.simple_fst import *
 
 fst = SimpleFst()
 #fst.Q.add(0)

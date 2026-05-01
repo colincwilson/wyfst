@@ -6,8 +6,8 @@ import numpy as np
 from pynini import Weight
 
 sys.path.append('..')
-from wynini import config as wyconfig
-from wynini.wywrapfst import *
+from wyfst import config as wyconfig
+from wyfst.wywrapfst import *
 
 # Alphabet.
 config = {'sigma': ['a', 'b', 'c', 'd', 'e']}

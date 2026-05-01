@@ -2,12 +2,12 @@
 import sys
 
 sys.path.append('..')
-import wynini
-from wynini import config as wyconfig
+import wyfst
+from wyfst import config as wyconfig
 
 wyconfig.init()
 
-M = wynini.ngram()
+M = wyfst.ngram()
 M.print(show_weight_one=True)
 for (q, t) in M.arcs():
     print(M.print_arc(q, t))
@@ -31,16 +31,16 @@ M.print(show_weight_one=True)
 print('=' * 10)
 wyconfig.init({'sigma': ['a']})
 symtable = wyconfig.symtable
-A = wynini.accep('a', symtable)
+A = wyfst.accep('a', symtable)
 A, iosymtable = A.encode_labels()
 print(list(iosymtable))
 A.print()
 
-G = wynini.ngram(context='left', isymbols=iosymtable)
+G = wyfst.ngram(context='left', isymbols=iosymtable)
 G.print(acceptor=True)
 print(G.info())
 
-B = wynini.compose(A, G)
+B = wyfst.compose(A, G)
 B.print(acceptor=True)
 print(B.info())
 print()

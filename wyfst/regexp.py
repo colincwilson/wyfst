@@ -6,8 +6,8 @@ import re, sys
 import string
 from pynini import SymbolTable, SymbolTableView
 
-import wynini
-from wynini import (config, Wfst)
+import wyfst
+from wyfst import (config, Wfst)
 
 meta = ['(', ')', '|', '.', '*', '+', '?']
 
@@ -171,7 +171,7 @@ class Thompson():
         """ Build step. """
         match node[0]:
             case None:  # node type for empty string
-                wfst = wynini.sigma_star( \
+                wfst = wyfst.sigma_star( \
                     isymbols=self.isymbols, sigma=self.sigma, add_delim=False)
             case '.':
                 wfst = self.buildDot(self.build(node[1]), self.build(node[2]))
@@ -189,39 +189,39 @@ class Thompson():
 
     def buildDot(self, wfst1, wfst2):
         """ Concatenation. """
-        wfst = wynini.concat(wfst1, wfst2)
+        wfst = wyfst.concat(wfst1, wfst2)
         return wfst
 
     def buildPipe(self, wfst1, wfst2):
         """ Disjunction. """
-        wfst = wynini.union(wfst1, wfst2)
+        wfst = wyfst.union(wfst1, wfst2)
         return wfst
 
     def buildPlus(self, wfst1):
         """ Repetition. """
-        wfst = wynini.plus(wfst1)
+        wfst = wyfst.plus(wfst1)
         return wfst
 
     def buildStar(self, wfst1):
         """ Kleene star. """
-        wfst = wynini.star(wfst1)
+        wfst = wyfst.star(wfst1)
         return wfst
 
     def buildQues(self, wfst1):
         """ Optionality. """
-        wfst = wynini.ques(wfst1)
+        wfst = wyfst.ques(wfst1)
         return wfst
 
     def buildSeg(self, node):
         """ Consumption. """
-        wfst = wynini.accep(node[0], isymbols=self.isymbols, add_delim=False)
+        wfst = wyfst.accep(node[0], isymbols=self.isymbols, add_delim=False)
         return wfst
 
     def sigma_star_regexp(self, beta, sigma=None, add_delim=False):
         """
         Acceptor for Sigma* beta, where beta is a regexp.
         """
-        sigstar = wynini.sigma_star(self.isymbols, sigma, add_delim)
+        sigstar = wyfst.sigma_star(self.isymbols, sigma, add_delim)
         alpha = self.to_wfst(beta)
         wfst = self.dot(sigstar, alpha)
         wfst = wfst.relabel_states()
@@ -262,7 +262,7 @@ if __name__ == "__main__":
     print(alpha)
     sys.exit(0)
 
-    wfst = wynini.sigma_star(isymbols)
+    wfst = wyfst.sigma_star(isymbols)
     print(wfst)
 
     beta = '(a|b)'

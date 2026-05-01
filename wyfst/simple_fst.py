@@ -2,7 +2,7 @@ from copy import copy
 from functools import total_ordering
 from pynini import SymbolTable
 
-from wynini import config, Wfst
+from wyfst import config, Wfst
 
 
 class SimpleFst():

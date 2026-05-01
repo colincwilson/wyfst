@@ -17,7 +17,7 @@ from scipy import sparse
 
 from pynini import Weight
 
-from wynini import (config, Wfst, shortestdistance)
+from wyfst import (config, Wfst, shortestdistance)
 
 
 def arc_features(wfst):

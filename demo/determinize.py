@@ -2,9 +2,9 @@
 import sys
 
 sys.path.append('..')
-import wynini
-from wynini import Wfst
-from wynini import config as wyconfig
+import wyfst
+from wyfst import Wfst
+from wyfst import config as wyconfig
 
 wyconfig.init()
 M = Wfst(isymbols=['a', 'b', 'c', 'd'])

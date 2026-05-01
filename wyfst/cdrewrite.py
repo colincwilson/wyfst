@@ -4,11 +4,11 @@ import re, sys
 import string
 from pynini import SymbolTable, SymbolTableView
 
-import wynini
-#from wynini import *
-from wynini import (config, Wfst)
-from wynini.regexp import Thompson
-from wynini import loglinear  # (testing only)
+import wyfst
+#from wyfsy import *
+from wyfst import (config, Wfst)
+from wyfst.regexp import Thompson
+from wyfst import loglinear  # (testing only)
 
 markers = ['_<1_', '_<2_', '_>_', '_#_']  # Markers used internally.
 
@@ -79,7 +79,7 @@ class CDRewrite():
         # In other words, this transducer marks just those phi
         # that occur before rho."
         f_alpha = regexper.dot( \
-            wynini.sigma_star( \
+            wyfst.sigma_star( \
                 isymbols=self.isymbols, sigma=(self.sigma + ['_>_'])),
             regexper.dot(
                 regexper.to_wfst(phi).add_self_arcs('_>_'),
@@ -101,7 +101,7 @@ class CDRewrite():
         # <2:eps at all states of phi, or equivalently of the
         # states of the cross product transducer phi x psi."
         if not replace:
-            replace = wynini.string_map( \
+            replace = wyfst.string_map( \
                 phi, psi,
                 isymbols=self.isymbols)
         replace = self.replace_with_markers(replace)
@@ -271,7 +271,7 @@ class CDRewrite():
         that fires for each instance of mu / lam __ rho .
         todo: two-level (aka input-output) constraints
         """
-        replace = wynini.string_map(mu, mu, phis={ftr: 1.})
+        replace = wyfst.string_map(mu, mu, phis={ftr: 1.})
         wfst, *_ = self.to_rule( \
             mu, None, lam, rho, replace, determinize=False)
         wfst = wfst.simplify(acceptor=False)
@@ -303,13 +303,13 @@ if __name__ == "__main__":
         compiler.to_rule(phi='a', psi='b', lam='b', rho='', verbose=0)
     rule.draw('fig/rule.dot', acceptor=False)
 
-    input_ = wynini.accep('b a a a', isymbols=None)
-    output_ = wynini.compose(input_, rule).determinize(acceptor=False)
+    input_ = wyfst.accep('b a a a', isymbols=None)
+    output_ = wyfst.compose(input_, rule).determinize(acceptor=False)
     print(output_.info())
     output_.draw('fig/output.dot')
     outputs_ = set(output_.ostrings())
     print(outputs_)
-    #output_ = wynini.compose(input_, rule).determinize(acceptor=False)
+    #output_ = wyfst.compose(input_, rule).determinize(acceptor=False)
     # print(output_)
     # print(output_.info())
     # outputs = list(output_.ostrings())
@@ -322,7 +322,7 @@ if __name__ == "__main__":
     print(constraint.phi)
     loglinear.assign_weights(constraint, {ftr: 1})
     constraint.draw('fig/constraint.dot', acceptor=False)
-    input_ = wynini.accep('b a a a', isymbols=None, arc_type='log')
+    input_ = wyfst.accep('b a a a', isymbols=None, arc_type='log')
     output_ = input_.compose(constraint)
     output_.draw('fig/output.dot', acceptor=True)
     print()

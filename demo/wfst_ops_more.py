@@ -2,8 +2,8 @@ import sys
 
 sys.path.append('..')
 from pynini import Arc, Weight
-from wynini import config as wyconfig
-from wynini.wywrapfst import *
+from wyfst import config as wyconfig
+from wyfst.wywrapfst import *
 
 # # # # # # # # # #
 # Alphabet (+ epsilon, bos, eos)

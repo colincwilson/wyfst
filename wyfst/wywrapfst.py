@@ -10,8 +10,8 @@ from pynini import (Fst, Arc, Weight, \
     SymbolTable, SymbolTableView)
 from graphviz import Source
 
-from wynini import config
-from wynini.config import logger
+from wyfst import config
+from wyfst.config import logger
 
 verbose = 0
 

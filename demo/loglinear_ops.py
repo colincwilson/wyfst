@@ -2,10 +2,10 @@
 import sys
 import numpy as np
 
-import wynini
-from wynini import (config, acceps, trellis)
-from wynini import loglinear
-#from wynini.wywrapfst import *
+import wyfst
+from wyfst import (config, acceps, trellis)
+from wyfst import loglinear
+#from wyfst.wywrapfst import *
 
 config.init()
 
@@ -103,14 +103,14 @@ sys.exit(0)
 
 # N-gram features with tiers.
 
-M_local = wynini.ngram(isymbols=syms, arc_type='log')
+M_local = wyfst.ngram(isymbols=syms, arc_type='log')
 M_local.draw('fig/M_local.dot', fig='png')
 
-M_cons = wynini.ngram(isymbols=syms, tier=['p', 't', 'k'], arc_type='log')
+M_cons = wyfst.ngram(isymbols=syms, tier=['p', 't', 'k'], arc_type='log')
 M_cons.draw('fig/M_cons.dot', fig='png')
 
-M = wynini.compose(M_local, M_cons)
-M.relabel_states(func=wynini.flatten)
+M = wyfst.compose(M_local, M_cons)
+M.relabel_states(func=wyfst.flatten)
 M.draw('fig/M.dot', fig='pdf')
 
 sys.exit(0)
