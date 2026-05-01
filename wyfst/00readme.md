@@ -1,7 +1,7 @@
 ## Importing
 
-import wynini
-from wynini import config as wyconfig
+import wyfst
+from wyfst import config as wyconfig
 
 ## Symbol tables
 

@@ -1,12 +1,12 @@
 # Compile one-level (phonotactic) constraint.
-import wynini
-from wynini.cdrewrite import CDRewrite
+import wyfst
+from wyfst.cdrewrite import CDRewrite
 
 sigma = ['a', 'b', 'c', 'd', '_*_']
 compiler = CDRewrite(sigma)
 
 phi, psi, lam, rho = 'a', '_*_', 'c', 'd'
-replace = wynini.string_map(phi, psi, add_delim=False)
+replace = wyfst.string_map(phi, psi, add_delim=False)
 replace.print_arcs()
 
 rule, *_ = compiler.to_rule(phi=phi, psi=psi, lam=lam, rho=rho, replace=None)

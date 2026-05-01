@@ -2,8 +2,8 @@ import sys
 import numpy as np
 
 sys.path.append('..')
-from wynini.wfst import *
-from wynini import loglinear
+from wyfst.wfst import *
+from wyfst import loglinear
 
 # Simple acceptor.
 M = trellis(length=2, arc_type='log')
