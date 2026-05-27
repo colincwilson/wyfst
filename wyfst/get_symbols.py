@@ -1,4 +1,5 @@
-# Report symbols in each column ('field') of a data file.
+# Get symbols and their frequences that appear in one
+# or each column (field) of a data file.
 import sys
 import configargparse
 import polars as pl
@@ -21,6 +22,7 @@ def get_symbols(data_file, delim, field=None, sep=None, has_header=True):
             for x in df[field].to_list():
                 syms.update(x.split(';'))
         print(f'\nSymbols in field {field}')
+        syms = dict(syms)
         print(syms)
     print()
 
@@ -48,13 +50,14 @@ if __name__ == "__main__":
         '--sep',
         type=str,
         default='',
-        help='Symbol separator within column (default empty).')
+        help='Symbol separator within column.')
     parser.add_argument( \
-        '--no_header',
+        '--header',
         action='store_true',
-        help='Data file does not have a header row.')
+        help='Data file has a header row.')
 
     args = parser.parse_args()
-    has_header = not args.no_header
+    if args.delim == '\\t':
+        args.delim = '\t'
 
-    get_symbols(args.file, '\t', args.field, args.sep, has_header)
+    get_symbols(args.file, args.delim, args.field, args.sep, args.header)
