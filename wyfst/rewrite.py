@@ -52,7 +52,7 @@ class CDRewrite():
         "A transducer corresponding to the left-to-right
         obligatory rule phi -> psi / lambda __ rho can be
         obtained by composition of five transducers:
-        r * f * replace * l1 * l2
+        r * f * replace * l1 * l2"
         Arguments
             phi, psi: list/tuple inputs for string_map
             lam: regexp string (use empty string for wildcard)
@@ -269,7 +269,7 @@ class CDRewrite():
         """
         Acceptor representing a single-level loglinear constraint
         that fires for each instance of mu / lam __ rho .
-        todo: two-level (aka input-output) constraints
+        todo: two-level (input-output) constraints
         """
         replace = wyfst.string_map(mu, mu, phis={ftr: 1.})
         wfst, *_ = self.to_rule( \
