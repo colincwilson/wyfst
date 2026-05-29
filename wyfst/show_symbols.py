@@ -6,8 +6,15 @@ import polars as pl
 from collections import Counter
 
 
-def get_symbols(data_file, delim, field=None, sep=None, has_header=True):
+def get_symbols(data_file,
+                delim,
+                field=None,
+                sep=None,
+                has_header=True,
+                unimorph=False):
     df = pl.read_csv(data_file, separator=delim, has_header=has_header)
+    if unimorph:
+        df.columns = ['Lemma', 'Word', 'Morph']
     fields = list(df.columns)
     if field is not None:
         fields = [field]
@@ -55,9 +62,14 @@ if __name__ == "__main__":
         '--header',
         action='store_true',
         help='Data file has a header row.')
+    parser.add_argument( \
+        '--unimorph',
+        action='store_true',
+        help='Inflection data in UniMorph three-column format')
 
     args = parser.parse_args()
     if args.delim == '\\t':
         args.delim = '\t'
 
-    get_symbols(args.file, args.delim, args.field, args.sep, args.header)
+    get_symbols(args.file, args.delim, args.field, args.sep, args.header,
+                args.unimorph)
