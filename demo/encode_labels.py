@@ -1,7 +1,7 @@
 # Encode / decode arc labels.
 import sys
 
-sys.path.append('..')
+# sys.path.append('..')
 import wyfst
 from wyfst import config as wyconfig
 

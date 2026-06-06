@@ -2,6 +2,7 @@
 import sys
 import numpy as np
 
+# sys.path.append('..')
 import wyfst
 from wyfst import (config, acceps, trellis)
 from wyfst import loglinear

@@ -1,7 +1,7 @@
 # Determinize acceptors and transducers.
 import sys
 
-sys.path.append('..')
+# sys.path.append('..')
 import wyfst
 from wyfst import Wfst
 from wyfst import config as wyconfig

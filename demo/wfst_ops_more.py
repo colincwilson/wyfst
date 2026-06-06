@@ -1,6 +1,6 @@
 import sys
 
-sys.path.append('..')
+# sys.path.append('..')
 from pynini import Arc, Weight
 from wyfst import config as wyconfig
 from wyfst.wywrapfst import *

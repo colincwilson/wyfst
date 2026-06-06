@@ -1,6 +1,6 @@
 import sys
 
-sys.path.append('..')
+# sys.path.append('..')
 from pynini import Weight
 from wyfst import config
 from wyfst.wywrapfst import *
@@ -11,6 +11,7 @@ config.init()
 # preceding context, placing arc weights in the neg log prob
 # semiring (called "log" by pynini/OpenFst)
 M = ngram(context='left', length=1, arc_type='log')
+# M.draw('fig/M.dot')
 
 # Assign arc weights with an arbitrary function; for example,
 # disprefer sequences of identicals (aa and bb)
@@ -23,10 +24,12 @@ def wfunc(wfst, src, arc):
 
 
 M.assign_weights(wfunc)
+# M.draw('fig/M.dot')
 
 #  Machine that represents all strings of length n
 n = 4
-A = braid(n, arc_type='log')
+A = braid(n, arc_type='log', add_delim=True)
+# A.draw('fig/A.dot')
 
 #  Compose A o M, normalize, and sample strings of length n
 S = compose(A, M)
