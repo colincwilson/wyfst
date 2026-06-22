@@ -1403,7 +1403,7 @@ class Wfst():
         returning iterator over output strings (default) or 
         machine that preserves input/output labels but not 
         state labels, output strings, or arc features.
-        An alternative method that also preserves state labels
+        An alternative method that does preserve state labels
         and arc features is: create an acceptor for the input
         string with accep() and then compose with this machine.
         todo: relocate
@@ -1424,7 +1424,7 @@ class Wfst():
         print(fst_in.print(show_weight_one=True))
         print(fst_in.num_states())
 
-        fst_out = fst_in @ fst
+        fst_out = fst_in @ fst  # todo: optionally use compose()
         fst_out.set_input_symbols(isymbols)
         fst_out.set_output_symbols(osymbols)
 
@@ -2845,6 +2845,20 @@ def compose_sorted(wfst1, wfst2):
 
     wfst = wfst.connect()
     return wfst
+
+
+def compose_implicit(
+    wfst1,
+    wfst2_func,
+    matchfunc1=None
+    verbose=False):
+    """
+    Composition of explicit wfst1 and implicit wfst2 determined
+    lazily / on-the-fly by the function wfst2_func:
+        (q1, output1, weight1, features1, q2, input2, weight2, features2)
+        -> (q, weight, feattures)
+    todo: implement
+    """
 
 
 def epsilon_filter(q1, t1, q2, t2, q3):
