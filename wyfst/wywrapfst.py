@@ -60,7 +60,7 @@ class Wfst():
         # note: state id <-> state label assumed to be one-to-one.
         self.sig = {}  # State id -> output string. (note: name change)
         # Arc (src_id, ilabel_id, olabel_id, dest_id) ->
-        # loglinear features ({ftr_k: val_k}).
+        # arc features ({ftr_k: val_k}) as in loglinear models.
         # note: arc keys do not include weights (cf. arc_equal())
         self.phi = {}
 
@@ -105,7 +105,7 @@ class Wfst():
     def set_symbols(self, isymbols, osymbols=None, acceptor=False):
         """
         Set input and/or output symbol table,
-        preserving loglinear features semantics.
+        preserving arc features semantics.
         """
         if isymbols is None and osymbols is None:
             return self
@@ -597,7 +597,7 @@ class Wfst():
         """
         Create (but do not add) 'virtual' epsilon:epsilon self-arc on a state.
         (see https://www.openfst.org/doxygen/fst/html/compose_8h_source.html)
-        note: arc does not have loglinear features
+        note: returned arc has no features
         """
         one = Weight.one(self.weight_type())
         src_id, arc = self.make_arc( \
@@ -783,7 +783,7 @@ class Wfst():
         if (not project_type):
             project_type = side
 
-        # Update map arcs -> loglinear features.
+        # Update map arcs -> arc features.
         # note: features may be invalidated by projection
         self.phi, phi_old = {}, self.phi
         for (t, phi_t) in phi_old.items():
@@ -945,7 +945,7 @@ class Wfst():
         OpenFst forum: 
         https://www.openfst.org/twiki/bin/view/Forum/FstForumArchive2014
         note: output can contain duplicate arcs
-        note: ignores features when determining arc equality
+        note: ignores any arc features when determining arc equality
         [destructive]
         """
         if not states and not dead_arcs:
@@ -1040,7 +1040,7 @@ class Wfst():
                     dead_arcs.append((q, t))
         return self.delete_arcs(dead_arcs)
 
-    # Weights and loglinear features.
+    # Weights and arc features.
 
     def map_weights(self, map_type='identity', **kwargs):
         """
@@ -1150,7 +1150,7 @@ class Wfst():
         return self
 
     def clear_features(self):
-        """ Remove all features from this machine. """
+        """ Remove all arc features from this machine. """
         self.phi = {}
 
     def push_weights(self,
@@ -1487,7 +1487,7 @@ class Wfst():
 
     def print_arc(self, q, t):
         """
-        Pretty a single arc from state q,
+        Print a single arc from state q,
         showing weight and features.
         """
         q = self.state_label(q)
@@ -1689,7 +1689,7 @@ def accep(word,
     fst.set_output_symbols(isymbols)
     wfst = Wfst.from_fst(fst)
 
-    # Assign weights and loglinear features to arcs that
+    # Assign weights and features to arcs that
     # lead to final state.
     if weight:
         func = lambda W, q, t: \
@@ -1729,7 +1729,7 @@ def string_map(inputs,
     Transducer that maps input string tuples/lists or 
     space-separated strings to outputs in same formats.
     If arg outputs is None, treat inputs as a pre-zipped
-    list of pairs. Accepts optional weight or loglinear
+    list of pairs. Accepts optional weight or arc
     features for each (input, output) pair, passed in lists.
     todo: string_file (inputs and outputs read from file)
     """
@@ -2302,7 +2302,7 @@ def determinize(wfst_in, acceptor=True):
     Applies to transducers after 'encoding' transition labels
     (i.e., performs determinization-as-acceptor), followed
     by 'decoding' the resulting machine.
-    Ignores state labels, weights, final strings, and features.
+    Ignores state labels, weights, final strings, and arc features.
     todo: auto-set acceptor flag
     """
     isymbols = wfst_in.input_symbols().copy()
@@ -2390,7 +2390,7 @@ def epsilon_closure(wfst, Q1, strict=False):
     Classic definition has strict set to False (default).
     If strict is True, requires epsilon transitions to
     have weight one in the machine's semiring and None/
-    empty loglinear features.
+    empty arc features.
     """
     epsilon = config.epsilon
     one = Weight.one(wfst.weight_type())
@@ -2420,7 +2420,7 @@ def epsilon_closure(wfst, Q1, strict=False):
 def rmepsilon(wfst_in, acceptor=True):
     """
     Remove epsilon arcs with weights equal to one
-    in the arg's semiring and no loglinear features.
+    in the arg's semiring and no arc features.
     todo: generic epsilon removal, see Mohri (2000).
     fixme: proper handling of final weights
     [nondestructive]
@@ -3153,7 +3153,7 @@ def _flatten(q):
 
 def combine_features(phi_t1, phi_t2):
     """
-    Combine loglinear features of two arcs
+    Combine features of two arcs
     (used in composition).
     """
     if (not phi_t1) and (not phi_t2):
