@@ -2857,6 +2857,7 @@ def compose_implicit(wfst1, wfst2_func, final2_func, verbose=False):
         state in wfst2 -> final / non-final (or final weight)
     todo: implement
     """
+    pass
 
 
 def epsilon_filter(q1, t1, q2, t2, q3):
