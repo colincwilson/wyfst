@@ -2850,7 +2850,7 @@ def compose_sorted(wfst1, wfst2):
 def compose_implicit(wfst1, wfst2_func, final2_func, verbose=False):
     """
     Composition of explicit wfst1 and virtual wfst2 (which may not
-    be finite-state) determined lazily / on-the-fly by with wfst2_func:
+    be finite-state) determined lazily / on-the-fly with wfst2_func:
         (src in wfst2, output label of transition in wfst1) ->
         { (output label of composed transition, dest in wfst2)_i }
     and final2_func:
