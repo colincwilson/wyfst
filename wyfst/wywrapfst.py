@@ -48,13 +48,13 @@ class Wfst():
             isymbols, _ = config.make_symtable([])
         if not isinstance(isymbols, (SymbolTable, SymbolTableView)):
             isymbols, _ = config.make_symtable(isymbols)
-        if osymbols is None:  # todo: rename output_symbols
+        if osymbols is None:
             osymbols = isymbols
         if not isinstance(osymbols, (SymbolTable, SymbolTableView)):
             osymbols, _ = config.make_symtable(osymbols)
-        self.fst = fst = Fst(arc_type)  # Wrapped Fst.
-        fst.set_input_symbols(isymbols)  # Arc input symbols.
-        fst.set_output_symbols(osymbols)  # Arc output symbols.
+        self.fst = Fst(arc_type)  # Wrapped Fst.
+        self.fst.set_input_symbols(isymbols)  # Arc input symbols.
+        self.fst.set_output_symbols(osymbols)  # Arc output symbols.
         self._state2label = {}  # State id -> state label.
         self._label2state = {}  # State label -> state id.
         # note: state id <-> state label assumed to be one-to-one.
@@ -2847,12 +2847,12 @@ def compose_sorted(wfst1, wfst2):
     return wfst
 
 
-def compose_implicit(wfst1, wfst2_func, initial2, final2_func, verbose=False):
+def compose_virtual(wfst1, wfst2_func, initial2, final2_func, verbose=False):
     """
     Composition of explicit wfst1 and virtual wfst2 (which may not
-    be finite-state) determined lazily / on-the-fly with wfst2_func:
-        (src in wfst2, output label and weight of transition in wfst1) ->
-        { (dest in wfst2, output label and weight of composed transition)_i }
+    be finite-state) partially realized lazily / on-the-fly with wfst2_func:
+        (src in wfst2, output label and weight of t in wfst1) ->
+        collection of (dest in wfst2, output label and weight of composed t)
     and final2_func:
         state in wfst2 -> final / non-final (or final weight)
     todo: implement
@@ -2861,7 +2861,7 @@ def compose_implicit(wfst1, wfst2_func, initial2, final2_func, verbose=False):
     epsilon = config.epsilon
     wfst = Wfst( \
         wfst1.input_symbols(),
-        config.make_symtable([]),
+        config.make_symtable([])[0],
         wfst1.arc_type()) # fixme
     one = Weight.one(wfst.weight_type())  # checkme: assumes common weights
     zero = Weight.zero(wfst.weight_type())
@@ -2903,7 +2903,8 @@ def compose_implicit(wfst1, wfst2_func, initial2, final2_func, verbose=False):
             src1_arcs = [wfst1.make_epsilon_arc(src1_id)[1]] + \
                 list(wfst1.arcs(src1_id))
             for t1 in src1_arcs:
-                t1_olabel = t1.olabel  # Output label.
+                t1_olabel = t1.olabel  # Output label id.
+                t1_olabel = wfst1.olabel(t1_olabel)  # Output label string.
 
                 # Get 'matching' arcs from src2 in wfst2.
                 matches = wfst2_func(src2, t1_olabel, t1.weight)

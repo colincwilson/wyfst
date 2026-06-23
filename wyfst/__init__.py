@@ -1,9 +1,9 @@
 __all__ = [ \
     "config",
+    "get_symbols",
     "loglinear",
     "regexp",
     "rewrite",
-    "show_symbols",
     "simple_fst",
     "trie",
     "wywrapfst",
