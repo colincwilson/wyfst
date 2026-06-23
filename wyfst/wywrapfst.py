@@ -2520,7 +2520,7 @@ def compose(wfst1,
         wfst1.input_symbols(),
         wfst2.output_symbols(),
         wfst1.arc_type() if common_weights else 'log') # checkme
-    one = Weight.one(wfst.weight_type())
+    one = Weight.one(wfst.weight_type())  # checkme: assumes common weights
     zero = Weight.zero(wfst.weight_type())
 
     # Initial state (possibly also final).
@@ -2729,7 +2729,7 @@ def compose_sorted(wfst1, wfst2):
         wfst1.input_symbols().copy(),
         wfst2.output_symbols().copy(),
         wfst1.arc_type() if common_weights else 'log')
-    one = Weight.one(wfst.weight_type())
+    one = Weight.one(wfst.weight_type())  # checkme: assumes common weights
     zero = Weight.zero(wfst.weight_type())
 
     # Initial state (possibly also final).
@@ -2847,17 +2847,123 @@ def compose_sorted(wfst1, wfst2):
     return wfst
 
 
-def compose_implicit(wfst1, wfst2_func, final2_func, verbose=False):
+def compose_implicit(wfst1, wfst2_func, initial2, final2_func, verbose=False):
     """
     Composition of explicit wfst1 and virtual wfst2 (which may not
     be finite-state) determined lazily / on-the-fly with wfst2_func:
-        (src in wfst2, output label of transition in wfst1) ->
-        { (output label of composed transition, dest in wfst2)_i }
+        (src in wfst2, output label and weight of transition in wfst1) ->
+        { (dest in wfst2, output label and weight of composed transition)_i }
     and final2_func:
         state in wfst2 -> final / non-final (or final weight)
     todo: implement
     """
-    pass
+    # Initialize result of composition.
+    epsilon = config.epsilon
+    wfst = Wfst( \
+        wfst1.input_symbols(),
+        config.make_symtable([]),
+        wfst1.arc_type()) # fixme
+    one = Weight.one(wfst.weight_type())  # checkme: assumes common weights
+    zero = Weight.zero(wfst.weight_type())
+
+    # Initial state (possibly also final).
+    q1 = wfst1.initial()  # Initial state in wfst1.
+    q2 = initial2  # Initial state of virtual wfst2.
+    q0 = (q1, q2)  # Initial state of composed machine.
+    wfst.add_state(q0, initial=True)
+    wfinal1 = wfst1.final(q1)
+    wfinal2 = final2_func(q2)
+    # q0 is final iff both q1 and q2 are final.
+    if wfinal1 != zero and wfinal2 != zero:
+        wfinal = pynini.times(wfinal1, wfinal2) \
+            if common_weights else one # checkme: or wfinal2?
+        wfst.set_final(q0, wfinal)
+
+    # Partially realized wfst2, for state labeling and final weights.
+    wfst2 = Wfst()
+    wfst2.add_state(q2, initial=True)
+    wfst2.set_final(q2, wfinal2)
+
+    # Lazy state and arc construction of wfst.
+    Q = set([(q1, q2, 0)])
+    Q_old, Q_new = set(), Q.copy()
+    while len(Q_new) != 0:
+        Q_old, Q_new = Q_new, Q_old
+        Q_new.clear()
+
+        # Source states.
+        for (src1, src2, q3) in Q_old:
+            src = (src1, src2)  # Source label.
+            src_id = wfst.state_id(src)  # Source id.
+            src1_id = wfst1.state_id(src1)  # Source id in wfst1.
+            src2_id = wfst2.state_id(src2)  # Source id in wfst2.
+            if verbose: print(src)
+
+            # Process arcs from src1 in wfst1.
+            src1_arcs = [wfst1.make_epsilon_arc(src1_id)[1]] + \
+                list(wfst1.arcs(src1_id))
+            for t1 in src1_arcs:
+                t1_olabel = t1.olabel  # Output label.
+
+                # Get 'matching' arcs from src2 in wfst2.
+                matches = wfst2_func(src2, t1_olabel, t1.weight)
+                if not matches:
+                    continue
+
+                for (dest2, t2_olabel, t2_weight) in matches:
+                    # Arc attributes in wfst1.
+                    t1_ilabel = t1.ilabel  # Input label.
+                    dest1_id = t1.nextstate  # Destination id.
+                    dest1 = wfst1.state_label(dest1_id)  # Destination label.
+                    wfinal1 = wfst1.final(dest1_id)  # Final weight.
+                    phi_t1 = wfst1.features(src1_id, t1)  # Arc features.
+
+                    # Arc attributes in wfst2.
+                    wfinal2 = final2_func(dest2)  # Final weight.
+                    phi_t2 = {}  # No arc features for virtual wfst2.
+
+                    # Apply composition filter.
+                    # fixme: t2 is virtual
+                    # q3_ = epsilon_filter(src1_id, t1, src2_id, t2, q3)
+                    # if q3_ == '⊥':
+                    #     continue
+
+                    # Destination state.
+                    dest = (dest1, dest2)  # Destination label
+                    dest_id = wfst.add_state(dest)  # Destination id.
+
+                    # Multiply weights.
+                    weight = pynini.times(t1.weight, t2_weight)
+
+                    # Dest is final if both dest1 and dest2 are final.
+                    if wfinal1 != zero and wfinal2 != zero:
+                        wfinal = pynini.times(wfinal1, wfinal2)
+                        wfst.set_final(dest, wfinal)
+
+                    # Update partial realization of wfst2.
+                    wfst2.add_state(dest2)
+                    wfst2.set_final(dest2, wfinal2)
+
+                    # Enqueue new state.
+                    q = (dest1, dest2, q3)
+                    if q not in Q:
+                        Q.add(q)
+                        Q_new.add(q)
+
+                    # New arc features.
+                    phi_t = combine_features(phi_t1, phi_t2)
+                    # note: copy of phi_t1 because phi_t2 is empty
+
+                    # Add new arc.
+                    wfst.add_arc(src=src,
+                                 ilabel=t1.ilabel,
+                                 olabel=t2_olabel,
+                                 weight=weight,
+                                 dest=dest,
+                                 phi=phi_t)
+
+    wfst = wfst.connect()
+    return wfst
 
 
 def epsilon_filter(q1, t1, q2, t2, q3):
