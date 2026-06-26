@@ -43,7 +43,7 @@ class Wfst():
 
     def __init__(self, isymbols=None, osymbols=None, arc_type='standard'):
         # Symbol tables.
-        # todo: require list or SymbolTable(View) args
+        # todo: isymbols/osymbols must be collections or SymbolTable(View)s
         if isymbols is None:
             isymbols, _ = config.make_symtable([])
         if not isinstance(isymbols, (SymbolTable, SymbolTableView)):
@@ -2106,7 +2106,7 @@ def ngram_right(length, isymbols, tier=None, arc_type='standard'):
 
 
 def _prefix(x, l):
-    """ Length-l prefix of tuple x. """
+    """ Length-l prefix of string/tuple/list x. """
     if l < 1:
         return ()
     if len(x) < l:
@@ -2115,7 +2115,7 @@ def _prefix(x, l):
 
 
 def _suffix(x, l):
-    """ Length-l suffix of tuple x. """
+    """ Length-l suffix of string/tuple/list x. """
     if l < 1:
         return ()
     if len(x) < l:

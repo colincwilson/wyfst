@@ -1,10 +1,10 @@
-# Create trie from list of (pre-tokenized) words.
+# Create trie collection of (pre-tokenized) words.
 from wyfst import config, Wfst
 
 
 def build_trie(vocab):
     """
-    Build trie from vocabulary of (word, token-list) pairs.
+    Build trie from vocabulary of (word, tokens) pairs.
     """
     trie = Wfst()
     q0 = trie.add_state()
