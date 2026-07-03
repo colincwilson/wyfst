@@ -2508,6 +2508,7 @@ def compose(wfst1,
             wfst2_arcs=None,
             matchfunc1=None,
             matchfunc2=None,
+            connect_output=True,
             verbose=False):
     """
     Composition/intersection of two machines, retaining contextual 
@@ -2663,7 +2664,8 @@ def compose(wfst1,
                                  dest=dest,
                                  phi=phi_t)
 
-    wfst = wfst.connect()
+    if connect_output:
+        wfst = wfst.connect()
     return wfst
 
 
