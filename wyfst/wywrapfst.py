@@ -1706,6 +1706,10 @@ def accep(word,
     return wfst
 
 
+# Alias.
+acceptor = accep
+
+
 def acceps(inputs,
            isymbols=None,
            add_delim=False,
