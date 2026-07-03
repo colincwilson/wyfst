@@ -1565,6 +1565,9 @@ class Wfst():
         ret = Source.from_file('.tmp.dot')
         return ret
 
+    # Alias.
+    show = viz
+
     def save(self, outfile):
         """
         Save to pickle file.

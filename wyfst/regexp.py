@@ -85,7 +85,12 @@ class Scanner:
         self.next = 0
 
     def preprocess(self, regexp):
-        """ Prepare regexp for parsing. """
+        """
+        Prepare regexp for parsing.
+        note: collection args are converted to disjunctive regexps
+        """
+        if isinstance(regexp, (list, set, tuple)):
+            regexp = '(' + '|'.join(regexp) + ')'
         # Remove leading, trailing, and extra whitespace.
         regexp = re.sub(r'^\s*', '', regexp)
         regexp = re.sub(r'\s*$', '', regexp)
@@ -160,7 +165,9 @@ class Thompson():
         self.sigma = sigma
 
     def to_wfst(self, regexp):
-        """ Build FSA from regexp. """
+        """
+        Build FSA from regexp.
+        """
         parser = Parser()
         root = parser.parse(regexp)
         wfst = self.build(root)
