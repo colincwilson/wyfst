@@ -1,5 +1,5 @@
 # (Weighted) Conditional rewriting as in Mohri & Sproat (1996).
-# reference implementation: pynini/extensions/cdrewrite.h
+# ref. implementation: pynini/extensions/cdrewrite.h
 import re, sys
 import string
 from pynini import SymbolTable, SymbolTableView
@@ -52,15 +52,16 @@ class CDRewrite():
         "A transducer corresponding to the left-to-right
         obligatory rule phi -> psi / lambda __ rho can be
         obtained by composition of five transducers:
-        r * f * replace * l1 * l2"
+        r * f * replace * l1 * l2" (Mohri & Sproat 1996).
         Arguments
             phi, psi: list/tuple inputs for string_map
             lam: regexp string (use empty string for wildcard)
             rho: regexp string (use empty string for wildcard)
             replace: precompiled phi -> psi transducer
-        note: to implement optional rules, use precompiled replace
-        note: to implemented weighted rules, use precompiled replace
-        and set determinize=False
+        note: to implement optional or weighted rules, pass
+        precompiled replace transducer with those properties
+        and set determinize=False.
+        todo: implement right-to-left unbounded rules
         """
         regexper = self.regexper
 
