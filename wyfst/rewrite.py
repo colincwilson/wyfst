@@ -38,7 +38,7 @@ class CDRewrite():
         self.sigma = sigma
         self.isymbols, _ = config.make_symtable(sigma)
         # Regexp compiler.
-        self.regexper = Thompson(self.sigma, self.isymbols)
+        self.regexp_compiler = Thompson(self.sigma, self.isymbols)
 
     def to_rule(self,
                 phi,
@@ -63,7 +63,7 @@ class CDRewrite():
         and set determinize=False.
         todo: implement right-to-left unbounded rules
         """
-        regexper = self.regexper
+        regexp_compiler = self.regexp_compiler
 
         # "1. The transducer r introduces in a string
         # a marker > before every instance of rho.
@@ -79,12 +79,12 @@ class CDRewrite():
         # before each instance of phi that is followed by > ...
         # In other words, this transducer marks just those phi
         # that occur before rho."
-        f_alpha = regexper.dot( \
+        f_alpha = regexp_compiler.dot( \
             wyfst.sigma_star( \
                 isymbols=self.isymbols, sigma=(self.sigma + ['_>_'])),
-            regexper.dot(
-                regexper.to_wfst(phi).add_self_arcs('_>_'),
-                regexper.to_wfst('_>_')
+            regexp_compiler.dot(
+                regexp_compiler.to_wfst(phi).add_self_arcs('_>_'),
+                regexp_compiler.to_wfst('_>_')
                 ).reverse()
             )
         f_alpha = f_alpha.determinize()
@@ -262,8 +262,8 @@ class CDRewrite():
         return replace
 
     def sigma_star_regexp(self, beta, sigma=None, add_delim=False):
-        # (delegate to regexper)
-        wfst = self.regexper.sigma_star_regexp(beta, sigma, add_delim)
+        # (delegate to regexp_compiler)
+        wfst = self.regexp_compiler.sigma_star_regexp(beta, sigma, add_delim)
         return wfst
 
     def to_constraint(self, mu, lam, rho, ftr):
