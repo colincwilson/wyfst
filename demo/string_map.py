@@ -12,4 +12,4 @@ inputs = [x for (x, y) in pairs.items()]
 outputs = [y for (x, y) in pairs.items()]
 M = string_map(inputs, outputs)
 print(M)
-M.draw('string_map.dot')
+M.draw('fig/string_map.dot')

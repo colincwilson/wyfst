@@ -1,4 +1,4 @@
-# Determinize acceptors and transducers.
+# Get input and output strings.
 import sys
 
 # sys.path.append('..')
