@@ -16,16 +16,16 @@ def wfst2_func(src2, t1_olabel, t1_weight):
     ret = []
     if t1_olabel == config.epsilon:
         if q == 'I':
-            ret.append((('I', buff), t1_olabel, t1_weight))
-            ret.append((('B', buff), t1_olabel, t1_weight))
+            ret.append((src2, t1_olabel, t1_weight, ('I', buff)))
+            ret.append((src2, t1_olabel, t1_weight, ('B', buff)))
         if q == 'B':
-            ret.append((('B', buff), t1_olabel, t1_weight))
-            ret.append((('H', buff), t1_olabel, t1_weight))
+            ret.append((src2, t1_olabel, t1_weight, ('B', buff)))
+            ret.append((src2, t1_olabel, t1_weight, ('H', buff)))
     elif q == 'B':
         buff_ = buff + ' ' + t1_olabel
-        ret.append(((q, buff_), t1_olabel, t1_weight))
+        ret.append((src2, t1_olabel, t1_weight, (q, buff_)))
     elif q in ['I', 'H']:
-        ret.append((src2, t1_olabel, t1_weight))
+        ret.append((src2, t1_olabel, t1_weight, src2))
     return ret
 
 

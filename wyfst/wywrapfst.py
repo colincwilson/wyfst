@@ -2920,7 +2920,7 @@ def compose_virtual(wfst1, wfst2_func, initial2, final2_func, verbose=False):
                 if not matches:
                     continue
 
-                for (dest2, t2_olabel, t2_weight) in matches:
+                for (_, t2_olabel, t2_weight, dest2) in matches:
                     # Arc attributes in wfst1.
                     t1_ilabel = t1.ilabel  # Input label.
                     dest1_id = t1.nextstate  # Destination id.
