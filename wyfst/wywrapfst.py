@@ -2861,10 +2861,10 @@ def compose_virtual(wfst1, wfst2_func, initial2, final2_func, verbose=False):
     Composition of explicit wfst1 and virtual wfst2 (which may not
     be finite-state) partially realized lazily / on-the-fly with wfst2_func:
         (src in wfst2, output label and weight of t in wfst1) ->
-        collection of (dest in wfst2, output label and weight of composed t)
+        collection of arcs each of the form
+        (src in wfst2, output label and weight of composed t, dest in wfst2)
     and final2_func:
         state in wfst2 -> final / non-final (or final weight)
-    todo: implement
     """
     # Initialize result of composition.
     epsilon = config.epsilon
@@ -2906,11 +2906,11 @@ def compose_virtual(wfst1, wfst2_func, initial2, final2_func, verbose=False):
             src_id = wfst.state_id(src)  # Source id.
             src1_id = wfst1.state_id(src1)  # Source id in wfst1.
             src2_id = wfst2.state_id(src2)  # Source id in wfst2.
-            if verbose: print(src)
 
-            # Process arcs from src1 in wfst1.
-            src1_arcs = [wfst1.make_epsilon_arc(src1_id)[1]] + \
-                list(wfst1.arcs(src1_id))
+            # Process arcs from src1 in wfst1 (incl. epsilon self-arc).
+            src1_arcs = [wfst1.make_epsilon_arc(src1_id)[1]] \
+                            + list(wfst1.arcs(src1_id))
+
             for t1 in src1_arcs:
                 t1_olabel = t1.olabel  # Output label id.
                 t1_olabel = wfst1.olabel(t1_olabel)  # Output label string.
@@ -2920,7 +2920,7 @@ def compose_virtual(wfst1, wfst2_func, initial2, final2_func, verbose=False):
                 if not matches:
                     continue
 
-                for (_, t2_olabel, t2_weight, dest2) in matches:
+                for t2 in matches:
                     # Arc attributes in wfst1.
                     t1_ilabel = t1.ilabel  # Input label.
                     dest1_id = t1.nextstate  # Destination id.
@@ -2929,6 +2929,7 @@ def compose_virtual(wfst1, wfst2_func, initial2, final2_func, verbose=False):
                     phi_t1 = wfst1.features(src1_id, t1)  # Arc features.
 
                     # Arc attributes in wfst2.
+                    (_, t2_olabel, t2_weight, dest2) = t2  # (src2 is constant)
                     wfinal2 = final2_func(dest2)  # Final weight.
                     phi_t2 = {}  # No arc features for virtual wfst2.
 
@@ -2971,6 +2972,11 @@ def compose_virtual(wfst1, wfst2_func, initial2, final2_func, verbose=False):
                                  weight=weight,
                                  dest=dest,
                                  phi=phi_t)
+
+                    if verbose:
+                        # todo: print resulting arc in wfst
+                        print(f'Matched t1 = {wfst1.print_arc(src1, t1)} '
+                              f'with t2 = {t2}')
 
     wfst = wfst.connect()
     return wfst

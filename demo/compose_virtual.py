@@ -41,6 +41,6 @@ wfst = wywrapfst.compose_virtual(wfst1,
                                  wfst2_func,
                                  initial2,
                                  final2_func,
-                                 verbose=True)
+                                 verbose=False)
 wfst.info()
 wfst.draw('fig/compose_virtual.dot')
