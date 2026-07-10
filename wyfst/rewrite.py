@@ -37,6 +37,7 @@ class CDRewrite():
             sigma = [config.bos] + sigma
         self.sigma = sigma
         self.isymbols, _ = config.make_symtable(sigma)
+        # implicit: osymbols = isymbols
         # Regexp compiler.
         self.regexp_compiler = Thompson(self.sigma, self.isymbols)
 
@@ -46,6 +47,7 @@ class CDRewrite():
                 lam,
                 rho,
                 replace=None,
+                direction=['LR->', '<-RL'][0],
                 determinize=True,
                 verbose=False):
         """
@@ -61,8 +63,15 @@ class CDRewrite():
         note: to implement optional or weighted rules, pass
         precompiled replace transducer with those properties
         and set determinize=False.
-        todo: implement right-to-left unbounded rules
         """
+        # Compile right-to-left rule.
+        if 'rl' in direction.lower():
+            ret = self.to_rule_rl( \
+                phi, psi, lam, rho, replace,
+                determinize, verbose)
+            return ret
+
+        # Compile left-to-right rule.
         regexp_compiler = self.regexp_compiler
 
         # "1. The transducer r introduces in a string
@@ -146,6 +155,33 @@ class CDRewrite():
             # todo: filename arg
 
         return rule, (r, f, replace, l1, l2)
+
+    def to_rule_rl(self,
+                   phi,
+                   psi,
+                   lam,
+                   rho,
+                   replace=None,
+                   determinize=True,
+                   verbose=False):
+        """
+        Compile a right-to-left rewrite rule by reversing the
+        underlying transducer construction used by to_rule().
+        [CoPilot]
+        """
+        if replace:
+            replace = replace.reverse()
+
+        rule, parts = self.to_rule(
+            phi[::-1],
+            psi[::-1],
+            rho[::-1],
+            lam[::-1],
+            replace=replace,
+            determinize=determinize,
+            verbose=verbose,
+        )
+        return rule.reverse(), parts
 
     def marker(self, alpha=None, type=1, insertions=[], deletions=[]):
         """
@@ -271,6 +307,7 @@ class CDRewrite():
         Acceptor representing a single-level loglinear constraint
         that fires for each instance of mu / lam __ rho .
         todo: two-level (input-output) constraints
+        todo: unbounded right-to-left constraints
         """
         replace = wyfst.string_map(mu, mu, phis={ftr: 1.})
         wfst, *_ = self.to_rule( \
@@ -285,29 +322,58 @@ if __name__ == "__main__":
     compiler = CDRewrite(sigma)
     isymbols = compiler.isymbols
 
+    # Left-to-right unbounded rule.
+    rule_lr, (r, f, replace, l1, l2) = \
+        compiler.to_rule(phi='a', psi='b', lam='b', rho='', direction='LR->', verbose=0)
+    rule_lr.draw('../demo/fig/rule_lr.dot', acceptor=False)
+
+    input_ = wyfst.accep('b a a a', isymbols=None)
+    output_ = wyfst.compose(input_, rule_lr).determinize(acceptor=False)
+    print(output_.info())
+    output_.draw('../demo/fig/output_lr.dot')
+    outputs_ = set(output_.ostrings())
+    print(outputs_)
+
+    # Right-to-left unbounded rule.
+    rule_rl, (r, f, replace, l1, l2) = \
+        compiler.to_rule(phi='a', psi='b', lam='', rho='b', direction='<-RL', verbose=0)
+    rule_rl.draw('../demo/fig/rule_rl.dot', acceptor=False)
+
+    input_ = wyfst.accep('a a a b', isymbols=None)
+    output_ = wyfst.compose(input_, rule_rl).determinize(acceptor=False)
+    print(output_.info())
+    output_.draw('../demo/fig/output_lr.dot')
+    outputs_ = set(output_.ostrings())
+    print(outputs_)
+
+    # Build rule from pieces.
     beta1 = '(a|b)'
     alpha1 = compiler.sigma_star_regexp(beta1)
     tau1 = compiler.marker(alpha1, type=1, insertions=['_#_'])
-    tau1.draw('fig/tau1.dot', acceptor=False)
+    tau1.draw('../demo/fig/tau1.dot', acceptor=False)
 
     beta2 = '(a|b)'
     alpha2 = compiler.sigma_star_regexp(beta2)
     tau2 = compiler.marker(alpha2, type=2, deletions=['_#_'])
-    tau2.draw('fig/tau2.dot', acceptor=False)
+    tau2.draw('../demo/fig/tau2.dot', acceptor=False)
 
     tau3 = compiler.marker(alpha2, type=3, deletions=['_#_'])
-    tau3.draw('fig/tau3.dot', acceptor=False)
+    tau3.draw('../demo/fig/tau3.dot', acceptor=False)
 
     # rule, (r, f, replace, l1, l2) = \
     #     compiler.compile(phi='a', psi='b', lam='c', rho='d')
     rule, (r, f, replace, l1, l2) = \
         compiler.to_rule(phi='a', psi='b', lam='b', rho='', verbose=0)
-    rule.draw('fig/rule.dot', acceptor=False)
+    rule.draw('../demo/fig/rule.dot', acceptor=False)
+
+    rule_rl, (r, f, replace, l1, l2) = \
+        compiler.to_rule_rl(phi='a', psi='b', lam='b', rho='', verbose=0)
+    rule_rl.draw('../demo/fig/rule_rl.dot', acceptor=False)
 
     input_ = wyfst.accep('b a a a', isymbols=None)
     output_ = wyfst.compose(input_, rule).determinize(acceptor=False)
     print(output_.info())
-    output_.draw('fig/output.dot')
+    output_.draw('../demo/fig/output.dot')
     outputs_ = set(output_.ostrings())
     print(outputs_)
     #output_ = wyfst.compose(input_, rule).determinize(acceptor=False)
@@ -322,10 +388,10 @@ if __name__ == "__main__":
         mu='a', lam='a', rho='', ftr=ftr)
     print(constraint.phi)
     loglinear.assign_weights(constraint, {ftr: 1})
-    constraint.draw('fig/constraint.dot', acceptor=False)
+    constraint.draw('../demo/fig/constraint.dot', acceptor=False)
     input_ = wyfst.accep('b a a a', isymbols=None, arc_type='log')
     output_ = input_.compose(constraint)
-    output_.draw('fig/output.dot', acceptor=True)
+    output_.draw('../demo/fig/output.dot', acceptor=True)
     print()
     #output_.print_arcs()
     print(output_.phi)
