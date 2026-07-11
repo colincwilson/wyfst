@@ -1671,7 +1671,7 @@ def accep(word,
           phi=None,
           **kwargs):
     """
-    Acceptor for space-separated word (see pynini.accep),
+    Acceptor for space-separated word (see pynini.accep);
     converts list/tuple args to this format.
     pynini.accep() arguments: weight (final weight) and 
     arc_type ("standard", "log", or "log64").
