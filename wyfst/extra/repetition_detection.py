@@ -1,5 +1,8 @@
+# Find (quasi-)repeated substrings within string using sliding window comparison.
 import polars as pl
 import edlib
+
+# # # # # # # # # #
 
 
 def find_internal_repeats(text,

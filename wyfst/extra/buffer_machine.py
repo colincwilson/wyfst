@@ -77,7 +77,7 @@ for x in outs:
 wfst.info()
 
 wfst.relabel_states()
-wfst.draw('fig/buffer_machine.dot')
+wfst.draw('../../demo/fig/buffer_machine.dot')
 
 # Best path (longest self-match).
 print('=' * 5 + 'best path' + '=' * 5)

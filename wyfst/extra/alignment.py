@@ -58,10 +58,10 @@ class Aligner:
 
 
 if __name__ == "__main__":
-    s1 = str_split('tristi')
-    s2 = str_split('trumisti')
+    s1 = str_split("tristi")
+    s2 = str_split("trumisti")
 
-    sigma = s2.split(' ')
+    sigma = s2.split(" ")
     aligner = Aligner(sigma=sigma)
 
     a = aligner.align(s1, s2)
