@@ -329,21 +329,21 @@ if __name__ == "__main__":
     print(x)
 
     print("\n=== All repeats ===")
-    reps_all = find_all_repeats(x, max_chunk_size=8, sep=" ")
-    print(reps_all)
+    all_reps = find_all_repeats(x, max_chunk_size=8, sep=" ")
+    print(all_reps)
 
     print("\n=== Maximal (longest) repeats ===")
-    reps_maximal = find_maximal_repeats(x, max_chunk_size=8, sep=" ")
-    print(reps_maximal)
+    maximal_reps = find_maximal_repeats(x, max_chunk_size=8, sep=" ")
+    print(maximal_reps)
 
     print("\n=== Score-based (top 5) ===")
-    reps_scored = find_best_repeats(x, max_chunk_size=8, sep=" ", top_n=5)
-    print(reps_scored)
+    scored_reps = find_best_repeats(x, max_chunk_size=8, sep=" ", top_n=5)
+    print(scored_reps)
 
     print("\n=== Non-overlapping greedy selection ===")
-    reps_nonoverlap = find_nonoverlapping_repeats(x, max_chunk_size=8, sep=" ")
-    print(reps_nonoverlap)
+    nonoverlap_reps = find_nonoverlapping_repeats(x, max_chunk_size=8, sep=" ")
+    print(nonoverlap_reps)
 
     print("\n=== Extended from seeds ===")
-    reps_extended = find_extended_repeats(x, seed_chunk_size=2, sep=" ")
-    print(reps_extended)
+    extended_reps = find_extended_repeats(x, seed_chunk_size=2, sep=" ")
+    print(extended_reps)
