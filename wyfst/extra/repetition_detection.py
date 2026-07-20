@@ -1,13 +1,17 @@
 # Find (quasi-)repeated substrings within string using sliding window comparison.
+import re, sys
 import polars as pl
 import edlib
+
+sys.path.append("~/Code/Python/phonopy/")
+from phonopy import str_util
 
 # # # # # # # # # #
 
 
 def find_internal_repeats(text,
                           chunk_size=4,
-                          max_distance=1,
+                          max_distance=0,
                           min_gap=None,
                           sep=" "):
     """Find (quasi-)repeated substrings within string."""
@@ -50,17 +54,15 @@ def find_internal_repeats(text,
     return df.unique()
 
 
-def find_maximal_repeats(text,
-                         max_chunk_size=10,
-                         min_chunk_size=2,
-                         max_distance=1,
-                         min_gap=None,
-                         sep=" "):
-    """Find maximal (longest) repeated chunks: filters out repeated
-    chunks that are completely contained within longer chunks"""
-    all_repeats = []
-
+def find_all_repeats(text,
+                     min_chunk_size=2,
+                     max_chunk_size=10,
+                     max_distance=0,
+                     min_gap=None,
+                     sep=" "):
+    """Find all repeated chunks: returns all repeats for all chunk sizes."""
     # Find repeats for all chunk sizes
+    all_repeats = []
     for size in range(min_chunk_size, max_chunk_size + 1):
         repeats = find_internal_repeats(text,
                                         chunk_size=size,
@@ -76,14 +78,32 @@ def find_maximal_repeats(text,
         return None
 
     combined = pl.concat(all_repeats)
+    combined = combined.sort(['chunk_size', 'pos1', 'pos2'],
+                             descending=[True, False, False])
+    return combined
+
+
+def find_maximal_repeats(text,
+                         min_chunk_size=2,
+                         max_chunk_size=10,
+                         max_distance=0,
+                         min_gap=None,
+                         sep=" "):
+    """Find maximal (longest) repeated chunks: filters out repeated
+    chunks that are completely contained within longer chunks"""
+    # Find repeats for all chunk sizes
+    combined = find_all_repeats(text,
+                                min_chunk_size=min_chunk_size,
+                                max_chunk_size=max_chunk_size,
+                                max_distance=max_distance,
+                                min_gap=min_gap,
+                                sep=sep)
+    if combined is None or len(combined) == 0:
+        return None
 
     # Filter: keep only chunks that are not subsumed by longer chunks
     # A chunk (i1, j1) with size s1 is subsumed by (i2, j2) with size s2 if:
     # s2 > s1 AND i2 <= i1 AND j2 <= j1 AND (i2 + s2) >= (i1 + s1) AND (j2 + s2) >= (j1 + s1)
-
-    combined = combined.sort(['chunk_size', 'pos1', 'pos2'],
-                             descending=[True, False, False])
-
     maximal = [combined.row(0, named=True)]  # Start with longest
 
     for i in range(1, len(combined)):
@@ -111,9 +131,9 @@ def find_maximal_repeats(text,
 
 def find_best_repeats(
     text,
-    max_chunk_size=10,
     min_chunk_size=2,
-    max_distance=1,
+    max_chunk_size=10,
+    max_distance=0,
     min_gap=None,
     sep=" ",
     length_weight=2,  # Weight for chunk length
@@ -156,9 +176,9 @@ def find_best_repeats(
 
 
 def find_nonoverlapping_repeats(text,
-                                max_chunk_size=10,
                                 min_chunk_size=2,
-                                max_distance=1,
+                                max_chunk_size=10,
+                                max_distance=0,
                                 min_gap=None,
                                 sep=" ",
                                 length_weight=2,
@@ -243,7 +263,7 @@ def expand_repeat(text, pos1, pos2, chunk_size, max_distance, sep):
 
 def find_extended_repeats(text,
                           seed_chunk_size=3,
-                          max_distance=1,
+                          max_distance=0,
                           min_gap=None,
                           sep=" "):
     """Find extended repeats starting from seed chunks."""
@@ -297,23 +317,33 @@ def find_extended_repeats(text,
 # # # # # # # # # #
 
 if __name__ == "__main__":
-    # Example text
-    x = "s a t u s a t u ɲ a"  # Malay example.
+    # Example wordforms.
+    examples = [
+        "satu-satuɲa", "kəkaseh-kəkaseh", "sə-səpet", "asal-usol",
+        "llama-llama", "doggy-oggy", "piggy-wiggy", "snalnal", "snalfak"
+    ]
 
-    print(find_internal_repeats(x, chunk_size=4))
+    x = examples[1]
+    x = re.sub("[-]", " ", x)
+    x = str_util.str_split(x)
+    print(x)
+
+    print("\n=== All repeats ===")
+    reps_all = find_all_repeats(x, max_chunk_size=8, sep=" ")
+    print(reps_all)
 
     print("\n=== Maximal (longest) repeats ===")
-    maximal = find_maximal_repeats(x, max_chunk_size=8, sep=" ")
-    print(maximal)
+    reps_maximal = find_maximal_repeats(x, max_chunk_size=8, sep=" ")
+    print(reps_maximal)
 
     print("\n=== Score-based (top 5) ===")
-    scored = find_best_repeats(x, max_chunk_size=8, sep=" ", top_n=5)
-    print(scored)
+    reps_scored = find_best_repeats(x, max_chunk_size=8, sep=" ", top_n=5)
+    print(reps_scored)
 
     print("\n=== Non-overlapping greedy selection ===")
-    nonoverlap = find_nonoverlapping_repeats(x, max_chunk_size=8, sep=" ")
-    print(nonoverlap)
+    reps_nonoverlap = find_nonoverlapping_repeats(x, max_chunk_size=8, sep=" ")
+    print(reps_nonoverlap)
 
     print("\n=== Extended from seeds ===")
-    extended = find_extended_repeats(x, seed_chunk_size=2, sep=" ")
-    print(extended)
+    reps_extended = find_extended_repeats(x, seed_chunk_size=2, sep=" ")
+    print(reps_extended)
