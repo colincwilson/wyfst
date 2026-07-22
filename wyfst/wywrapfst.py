@@ -1540,14 +1540,14 @@ class Wfst():
         source = Path(source)
         suffix = source.suffix
         if suffix in ['.dot']:
-            source = str(source)
-            source_out = re.sub('.dot$', f'.{fig}', source_in)
+            source_in = str(source)
+            source_out = source.with_suffix(f'.{fig}')
         elif suffix in ['.pdf', '.png']:
-            source = source.with_suffix('.dot')
+            source_in = source.with_suffix('.dot')
             source_out = str(source)
             fig = suffix[1:]
 
-        ret = fst.draw(source,
+        ret = fst.draw(source_in,
                        isymbols=fst.input_symbols(),
                        osymbols=fst.output_symbols(),
                        ssymbols=state_symbols,
@@ -1556,7 +1556,7 @@ class Wfst():
                        **kwargs)
 
         if fig in ['pdf', 'png']:
-            cmd = f'dot -T{fig} {source} > {source_out}'
+            cmd = f'dot -T{fig} {source_in} > {source_out}'
             os.system(cmd)
 
         return ret
@@ -1739,8 +1739,8 @@ def string_map(inputs,
                phis=None,
                **kwargs):
     """
-    Transducer that maps input string tuples/lists or 
-    space-separated strings to outputs in same formats.
+    Transducer that maps input space-separated strings
+    or tuples/lists to outputs in same formats.
     If arg outputs is None, treat inputs as a pre-zipped
     list of pairs. Accepts optional weight or arc
     features for each (input, output) pair, passed in lists.
@@ -1924,6 +1924,9 @@ def sigma_star(isymbols=None, sigma=None, add_delim=False, **kwargs):
         ignore = [config.epsilon, config.bos, config.eos]
         sigma = [sym for (sym_id, sym) in isymbols \
             if sym not in ignore]
+        # fixme: If isymbols is not specified, the ignored
+        # symbols will be missing from the input and output
+        # alphabet of the returned machine.
     for sym in sigma:
         wfst.add_arc(q, sym, None, None, q)
     return wfst

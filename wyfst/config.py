@@ -52,18 +52,27 @@ def make_symtable(sigma=[]):
     return symtable, syms
 
 
+def get_symbols(symtable_):
+    global symtable
+    if not symtable_:
+        symtable_ = symtable
+    ret = [(sym_id, sym) for (sym_id, sym) in symtable_]
+    return ret
+
+
 def print_symtable(symtable_):
     """
     Print SymbolTable / SymbolTableView as 
     (symbol_id, symbol) pairs.
     see pynini.SymbolTableView.write_text
     """
-    global symtable
-    if not symtable_:
-        symtable_ = symtable
-    for (sym_id, sym) in symtable_:
+    syms = get_symbols(symtable_)
+    for (sym_id, sym) in syms:
         print(f'{sym_id}\t{sym}')
 
+
+# Alias.
+print_symbols = print_symtable
 
 # Logging
 logger = logging.getLogger(__name__)
