@@ -351,6 +351,16 @@ class Wfst():
         self._label2state = label2state
         return self
 
+    # Alias.
+    rename_states = relabel_states
+
+    def simplify_states(self):
+        """
+        Alias for relabel_states without func arg.
+        [destructive]
+        """
+        return self.relabel_states()
+
     def accessible(self, forward=True):
         """
         Ids of states accessible from initial state (forward) 
