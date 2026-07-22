@@ -15,8 +15,10 @@ weight = Weight('tropical', 1.0)  # 1
 weight_zero = Weight.zero('tropical')  # +Inf
 
 # Machine wfst1
-# inpt = 'w o f e w o'  # Test stim inMarcus et al. 1999
-inpt = 'a ng g a ng a ng g a ng'  # Listed in MALINDO as R-penuh
+# inpt = 'w o f e w o'  # Test stim from Marcus et al. 1999
+#inpt = 'a ng g a ng a ng g a ng'  # Listed in MALINDO as R-penuh
+#inpt = 'l a k l a k'  # Simple accept case for complete redup.
+inpt = 'l a k l a m'  # Simple reject case for complete redup.
 wfst1 = accep(inpt, isymbols=None)
 print(wfst1.info())
 
@@ -32,14 +34,15 @@ def wfst2_func(src2, t1_olabel, t1_weight):
             arcs.append((src2, '<', weight_one, ('B0', buff)))
             # note: distinction between B0 and B filters out empty-buffer paths
         if q == 'B':
-            arcs.append((src2, '>', weight_one, ('H', buff)))
+            # arcs.append((src2, '>', weight_one, ('H', buff)))
+            arcs.append((src2, '>', weight_one, ('M', buff)))
         if q == 'H':
             arcs.append((src2, '<', weight_one, ('M', buff)))
         if q == 'M':
             arcs.append((src2, '>', weight_one, ('F', buff)))
     # Scan or buffer hold.
-    elif q in ['I', 'H', 'F']:
-        arcs.append((src2, t1_olabel, weight, src2))
+    #elif q in ['I', 'H', 'F']:
+    #    arcs.append((src2, t1_olabel, weight, src2))
     # Buffer store.
     elif q in ['B0', 'B']:
         buff_ = t1_olabel if buff == '' else (buff + ' ' + t1_olabel)
@@ -67,7 +70,7 @@ def final2_func(src2):
 
 # Composition output.
 wfst = compose_virtual( \
-    wfst1, wfst2_func, initial2, final2_func, verbose=False)
+    wfst1, wfst2_func, initial2, final2_func, connect_output=False, verbose=False)
 
 print('=' * 5 + 'all paths' + '=' * 5)
 outs = wfst.ostrings()
@@ -76,8 +79,8 @@ for x in outs:
 
 wfst.info()
 
-wfst.relabel_states()
-wfst.draw('../../demo/fig/buffer_machine.dot')
+#wfst.relabel_states()
+wfst.draw('/home/colin/Downloads/buffer_machine.dot', fig='pdf')
 
 # Best path (longest self-match).
 print('=' * 5 + 'best path' + '=' * 5)
@@ -85,3 +88,5 @@ wfst_best = wfst.shortestpath()
 outs_best = wfst_best.ostrings()
 for x in outs_best:
     print(x)
+
+# wfst_best.draw('../../demo/fig/buffer_machine.dot', fig='pdf')

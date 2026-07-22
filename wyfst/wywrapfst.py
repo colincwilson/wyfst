@@ -1536,6 +1536,17 @@ class Wfst():
         state_symbols = pynini.SymbolTable()  # State symbol table.
         for q, label in self._state2label.items():
             state_symbols.add_symbol(str(label), q)
+
+        source = Path(source)
+        suffix = source.suffix
+        if suffix in ['.dot']:
+            source = str(source)
+            source_out = re.sub('.dot$', f'.{fig}', source_in)
+        elif suffix in ['.pdf', '.png']:
+            source = source.with_suffix('.dot')
+            source_out = str(source)
+            fig = suffix[1:]
+
         ret = fst.draw(source,
                        isymbols=fst.input_symbols(),
                        osymbols=fst.output_symbols(),
@@ -1543,16 +1554,11 @@ class Wfst():
                        acceptor=acceptor,
                        portrait=portrait,
                        **kwargs)
-        if fig == 'pdf':
-            source_in = str(source)
-            source_out = re.sub('.dot$', '.pdf', source_in)
-            cmd = f'dot -Tpdf {source_in} > {source_out}'
+
+        if fig in ['pdf', 'png']:
+            cmd = f'dot -T{fig} {source} > {source_out}'
             os.system(cmd)
-        elif fig == 'png':
-            source_in = str(source)
-            source_out = re.sub('.dot$', '.png', source_in)
-            cmd = f'dot -Tpng {source_in} > {source_out}'
-            os.system(cmd)
+
         return ret
 
     def viz(self, **kwargs):
@@ -2719,7 +2725,7 @@ def organize_arcs(wfst, src=None, matchfunc=None, side='input', verbose=False):
     return src_arcs
 
 
-def compose_sorted(wfst1, wfst2):
+def compose_sorted(wfst1, wfst2, connect_output=True):
     """
     Composition/intersection of two machines, as for compose()
     but assuming that:
@@ -2852,11 +2858,17 @@ def compose_sorted(wfst1, wfst2):
                                  dest=dest,
                                  phi=phi_t)
 
-    wfst = wfst.connect()
+    if connect_output:
+        wfst = wfst.connect()
     return wfst
 
 
-def compose_virtual(wfst1, wfst2_func, initial2, final2_func, verbose=False):
+def compose_virtual(wfst1,
+                    wfst2_func,
+                    initial2,
+                    final2_func,
+                    connect_output=True,
+                    verbose=False):
     """
     Composition of explicit wfst1 and virtual wfst2 (which may not
     be finite-state) partially realized lazily / on-the-fly with wfst2_func:
@@ -2978,7 +2990,8 @@ def compose_virtual(wfst1, wfst2_func, initial2, final2_func, verbose=False):
                         print(f'Matched t1 = {wfst1.print_arc(src1, t1)} '
                               f'with t2 = {t2}')
 
-    wfst = wfst.connect()
+    if connect_output:
+        wfst = wfst.connect()
     return wfst
 
 

@@ -323,7 +323,8 @@ if __name__ == "__main__":
         "llama-llama", "doggy-oggy", "piggy-wiggy", "snalnal", "snalfak"
     ]
 
-    x = examples[1]
+    example_id = 1
+    x = examples[example_id]
     x = re.sub("[-]", " ", x)
     x = str_util.str_split(x)
     print(x)
