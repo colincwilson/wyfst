@@ -1618,26 +1618,21 @@ class Wfst():
 
     # Operations defined outside of class.
 
+    def compose(self, wfst2, **kwargs):
+        return compose(self, wfst2, **kwargs)
+
+    def compose_sorted(self, wfst2, **kwargs):
+        return compose_sorted(self, wfst2, **kwargs)
+
+    def compose_virtual(self, wfst2_func, initial2, final2_func, **kwargs):
+        return compose_virtual(self, wfst2_func, initial2, final2_func,
+                               **kwargs)
+
+    def concat(self, wfst2, **kwargs):
+        return concat(self, wfst2, **kwargs)
+
     def connect(self, **kwargs):
         return connect(self, **kwargs)
-
-    def trim(self, **kwargs):
-        return trim(self, **kwargs)
-
-    def invert(self, **kwargs):
-        return invert(self, **kwargs)
-
-    def reverse(self, **kwargs):
-        return reverse(self, **kwargs)
-
-    def ques(self, **kwargs):
-        return ques(self, **kwargs)
-
-    def plus(self, **kwargs):
-        return plus(self, **kwargs)
-
-    def star(self, **kwargs):
-        return star(self, **kwargs)
 
     def delimit(self, **kwargs):
         return delimit(self, **kwargs)
@@ -1645,26 +1640,26 @@ class Wfst():
     def determinize(self, **kwargs):
         return determinize(self, **kwargs)
 
-    def rmepsilon(self, **kwargs):
-        return rmepsilon(self, **kwargs)
-
-    def simplify(self, **kwargs):
-        return simplify(self, **kwargs)
+    def invert(self, **kwargs):
+        return invert(self, **kwargs)
 
     def minimize(self, **kwargs):
         return minimize(self, **kwargs)
 
-    def compose(self, wfst2, **kwargs):
-        return compose(self, wfst2, **kwargs)
+    def optimize(self, **kwargs):
+        return optimize(self, **kwargs)
 
-    def compose_sorted(self, wfst2, **kwargs):
-        return compose_sorted(self, wfst2, **kwargs)
+    def plus(self, **kwargs):
+        return plus(self, **kwargs)
 
-    def concat(self, wfst2, **kwargs):
-        return concat(self, wfst2, **kwargs)
+    def ques(self, **kwargs):
+        return ques(self, **kwargs)
 
-    def union(self, wfst2, **kwargs):
-        return union(self, wfst2, **kwargs)
+    def reverse(self, **kwargs):
+        return reverse(self, **kwargs)
+
+    def rmepsilon(self, **kwargs):
+        return rmepsilon(self, **kwargs)
 
     def shortestdistance(self, **kwargs):
         return shortestdistance(self, **kwargs)
@@ -1674,6 +1669,18 @@ class Wfst():
 
     def shortestpath_(self, **kwargs):
         return shortestpath(self, **kwargs)
+
+    def simplify(self, **kwargs):
+        return simplify(self, **kwargs)
+
+    def star(self, **kwargs):
+        return star(self, **kwargs)
+
+    def trim(self, **kwargs):
+        return trim(self, **kwargs)
+
+    def union(self, wfst2, **kwargs):
+        return union(self, wfst2, **kwargs)
 
 
 # # # # # # # # # #
@@ -2173,21 +2180,6 @@ def _suffix(x, l):
 
 # Algorithms.
 # todo: difference(), epsnormalize()
-# todo: optimize(); currently must do
-# wfst -> to_fst() -> optimize() -> from_fst()
-
-
-def minimize(wfst_in, acceptor=False):
-    """
-    Minimize a determinizable machine.
-    [nondestructive]
-    """
-    wfst = wfst_in.copy()
-    wfst.reverse()
-    wfst = determinize(wfst, acceptor=acceptor)
-    wfst.reverse()
-    wfst = determinize(wfst, acceptor=acceptor)
-    return wfst
 
 
 def connect(wfst_in):
@@ -2204,126 +2196,6 @@ def connect(wfst_in):
 
 
 trim = connect  # Alias
-
-
-def invert(wfst_in):
-    """
-    Invert mapping (exchange input and output labels).
-    note: assume Fst.invert() does not change state ids
-    or order of arcs within state.
-    [destructive]
-    """
-    fst = wfst_in.fst
-    isymbols = fst.input_symbols().copy()
-    osymbols = fst.output_symbols().copy()
-    # Swap input and output labels in wrapped fst.
-    fst.invert()
-    # Alternative with explicit label swap:
-    # for q in fst.states():
-    #     q_arcs = fst.mutable_arcs(q)
-    #     for t in q_arcs:  # note: unstable arc reference
-    #         t.ilabel, t.olabel = t.olabel, t.ilabel
-    #         q_arcs.set_value(t)
-    # self.set_input_symbols(osymbols)
-    # self.set_output_symbols(isymbols)
-    wfst_in.set_input_symbols(osymbols)
-    wfst_in.set_output_symbols(isymbols)
-    return wfst_in
-
-
-def reverse(wfst_in, reverse_delim=False):
-    """
-    Reverse language / mapping.
-    [nondestructive]
-    """
-    epsilon = config.epsilon
-    bos, eos = config.bos, config.eos
-    one = Weight.one(wfst_in.weight_type())
-
-    # Copy machine; delete arcs / features / final strings.
-    wfst = wfst_in.copy()
-    for src in wfst_in.state_ids():
-        wfst.fst.delete_arcs(src)
-    wfst.phi = {}
-    wfst.sig = {}
-
-    # Add arcs with reversed directions.
-    for src in wfst_in.state_ids():
-        for t in wfst_in.arcs(src):
-            ilabel = wfst_in.ilabel(t)
-            olabel = wfst_in.olabel(t)
-
-            if reverse_delim:  # Optionally flip bos/eos.
-                if ilabel == bos:
-                    ilabel = eos
-                if ilabel == eos:
-                    ilabel = bos
-                if olabel == bos:
-                    olabel = eos
-                if olabel == eos:
-                    olabel = bos
-
-            weight = t.weight.copy() if t.weight else None
-            dest = t.nextstate
-            phi_t = wfst_in.features(src, t)
-            t_ = wfst.add_arc(dest, ilabel, olabel, weight, src, phi_t)
-
-    # Exchange initial and final states (creating new initial).
-    q0 = wfst.add_state()
-    wfst.set_initial(q0)
-    for q in wfst_in.final_ids():
-        wfst.set_final(q, False)
-        wfst.add_arc(q0, epsilon, epsilon, one, q)
-    wfst.set_final(wfst_in.initial_id(), True)
-    return wfst
-
-
-def ques(wfst_in):
-    """ Optionality. [nondestructive] """
-    wfst = wfst_in.copy()
-    one = Weight.one(wfst.weight_type())
-    q0 = wfst.initial()
-    qf = wfst.add_state(final=True)
-    wfst.add_arc( \
-        q0,
-        config.epsilon,
-        config.epsilon,
-        one,
-        qf)
-    return wfst
-
-
-def plus(wfst_in):
-    """ Plus operator. [nondestructive] """
-    wfst = wfst_in.copy()
-    one = Weight.one(wfst.weight_type())
-    q0 = wfst.initial()
-    for qf in wfst.finals():
-        wfst.add_arc( \
-            qf,
-            config.epsilon,
-            config.epsilon,
-            one,
-            q0)
-    return wfst
-
-
-def star(wfst_in):
-    """ Repetition. [destructive] """
-    wfst = wfst_in.copy()
-    one = Weight.one(wfst.weight_type())
-    q0 = wfst.initial()
-    wfst.set_final(q0, one)
-    for qf in wfst.finals():
-        if qf == q0:  # note: implicit epsilon self-transition
-            continue
-        wfst.add_arc( \
-            qf,
-            config.epsilon,
-            config.epsilon,
-            one,
-            q0)
-    return wfst
 
 
 def delimit(wfst_in):
@@ -2468,6 +2340,135 @@ def epsilon_closure(wfst, Q1, strict=False):
     return Q2
 
 
+def invert(wfst_in):
+    """
+    Invert mapping (exchange input and output labels).
+    note: assume Fst.invert() does not change state ids
+    or order of arcs within state.
+    [destructive]
+    """
+    fst = wfst_in.fst
+    isymbols = fst.input_symbols().copy()
+    osymbols = fst.output_symbols().copy()
+    # Swap input and output labels in wrapped fst.
+    fst.invert()
+    # Alternative with explicit label swap:
+    # for q in fst.states():
+    #     q_arcs = fst.mutable_arcs(q)
+    #     for t in q_arcs:  # note: unstable arc reference
+    #         t.ilabel, t.olabel = t.olabel, t.ilabel
+    #         q_arcs.set_value(t)
+    # self.set_input_symbols(osymbols)
+    # self.set_output_symbols(isymbols)
+    wfst_in.set_input_symbols(osymbols)
+    wfst_in.set_output_symbols(isymbols)
+    return wfst_in
+
+
+def minimize(wfst_in, acceptor=False):
+    """
+    Minimize a determinizable machine.
+    [nondestructive]
+    """
+    wfst = wfst_in.copy()
+    wfst.reverse()
+    wfst = determinize(wfst, acceptor=acceptor)
+    wfst.reverse()
+    wfst = determinize(wfst, acceptor=acceptor)
+    return wfst
+
+
+def optimize(wfst_in):
+    """
+    Optimize machine by first converting to pynini Fst,
+    calling pynini.optimize(), and converting back to Wfst.
+    note: loses state labels and arc features.
+    todo: wfst implementation.
+    [nondestructive]
+    """
+    fst = wfst_in.to_fst()
+    fst.optimize()
+    wfst = Wfst.from_fst(fst)
+    return wfst
+
+
+def plus(wfst_in):
+    """ Plus operator. [nondestructive] """
+    wfst = wfst_in.copy()
+    one = Weight.one(wfst.weight_type())
+    q0 = wfst.initial()
+    for qf in wfst.finals():
+        wfst.add_arc( \
+            qf,
+            config.epsilon,
+            config.epsilon,
+            one,
+            q0)
+    return wfst
+
+
+def ques(wfst_in):
+    """ Optionality. [nondestructive] """
+    wfst = wfst_in.copy()
+    one = Weight.one(wfst.weight_type())
+    q0 = wfst.initial()
+    qf = wfst.add_state(final=True)
+    wfst.add_arc( \
+        q0,
+        config.epsilon,
+        config.epsilon,
+        one,
+        qf)
+    return wfst
+
+
+def reverse(wfst_in, reverse_delim=False):
+    """
+    Reverse language / mapping.
+    [nondestructive]
+    """
+    epsilon = config.epsilon
+    bos, eos = config.bos, config.eos
+    one = Weight.one(wfst_in.weight_type())
+
+    # Copy machine; delete arcs / features / final strings.
+    wfst = wfst_in.copy()
+    for src in wfst_in.state_ids():
+        wfst.fst.delete_arcs(src)
+    wfst.phi = {}
+    wfst.sig = {}
+
+    # Add arcs with reversed directions.
+    for src in wfst_in.state_ids():
+        for t in wfst_in.arcs(src):
+            ilabel = wfst_in.ilabel(t)
+            olabel = wfst_in.olabel(t)
+
+            if reverse_delim:  # Optionally flip bos/eos.
+                if ilabel == bos:
+                    ilabel = eos
+                if ilabel == eos:
+                    ilabel = bos
+                if olabel == bos:
+                    olabel = eos
+                if olabel == eos:
+                    olabel = bos
+
+            weight = t.weight.copy() if t.weight else None
+            dest = t.nextstate
+            phi_t = wfst_in.features(src, t)
+            t_ = wfst.add_arc(dest, ilabel, olabel, weight, src, phi_t)
+
+    # Exchange initial and final states (creating new initial).
+    q0 = wfst.add_state()
+    wfst.set_initial(q0)
+    for q in wfst_in.final_ids():
+        wfst.set_final(q, False)
+        wfst.add_arc(q0, epsilon, epsilon, one, q)
+    wfst.set_final(wfst_in.initial_id(), True)
+    return wfst
+
+
 def rmepsilon(wfst_in, acceptor=True):
     """
     Remove epsilon arcs with weights equal to one
@@ -2538,6 +2539,24 @@ def simplify(wfst_in, acceptor=True):
     """
     wfst = rmepsilon(wfst_in, acceptor)
     wfst = wfst.collapse_arcs()
+    return wfst
+
+
+def star(wfst_in):
+    """ Repetition. [destructive] """
+    wfst = wfst_in.copy()
+    one = Weight.one(wfst.weight_type())
+    q0 = wfst.initial()
+    wfst.set_final(q0, one)
+    for qf in wfst.finals():
+        if qf == q0:  # note: implicit epsilon self-transition
+            continue
+        wfst.add_arc( \
+            qf,
+            config.epsilon,
+            config.epsilon,
+            one,
+            q0)
     return wfst
 
 
