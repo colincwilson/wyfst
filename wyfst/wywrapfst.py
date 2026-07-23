@@ -1537,7 +1537,13 @@ class Wfst():
     def __str__(self):
         return self.print(show=False)
 
-    def draw(self, source, acceptor=True, portrait=True, fig='pdf', **kwargs):
+    def draw(self,
+             source,
+             acceptor=True,
+             portrait=True,
+             fig='pdf',
+             show=True,
+             **kwargs):
         """
         Write wrapped FST in dot format to file (= source).
         note: kwargs can include show_weight_one=True
@@ -1549,12 +1555,14 @@ class Wfst():
 
         source = Path(source)
         suffix = source.suffix
+        fig_types = ['.pdf', '.png', '.svg']
+
         if suffix in ['.dot']:
-            source_in = str(source)
+            source_in = source
             source_out = source.with_suffix(f'.{fig}')
-        elif suffix in ['.pdf', '.png']:
+        elif suffix in fig_types:
             source_in = source.with_suffix('.dot')
-            source_out = str(source)
+            source_out = source
             fig = suffix[1:]
 
         ret = fst.draw(source_in,
@@ -1565,13 +1573,17 @@ class Wfst():
                        portrait=portrait,
                        **kwargs)
 
-        if fig in ['pdf', 'png']:
+        suffix = source_out.suffix
+        if suffix in fig_types:
             cmd = f'dot -T{fig} {source_in} > {source_out}'
             os.system(cmd)
 
+        if show:
+            ret = Source.from_file(source_in)
+
         return ret
 
-    def viz(self, **kwargs):
+    def view(self, **kwargs):
         """
         Draw in ipython / jupyter notebook.
         # note: see draw() for kwarg options.
@@ -1582,7 +1594,7 @@ class Wfst():
         return ret
 
     # Alias.
-    show = viz
+    show = viz = view
 
     def save(self, outfile):
         """
@@ -1634,6 +1646,9 @@ class Wfst():
 
     def simplify(self, **kwargs):
         return simplify(self, **kwargs)
+
+    def minimize(self, **kwargs):
+        return minimize(self, **kwargs)
 
     def compose(self, wfst2, **kwargs):
         return compose(self, wfst2, **kwargs)
@@ -2154,15 +2169,19 @@ def _suffix(x, l):
 
 # Algorithms.
 # todo: difference(), epsnormalize(),
-# minimize(), rmepsilon()
 
-# # minimize a determinizable machine
-# def minimize(m, epsilon):
-#     m.reverse()
-#     m = determinize(m, epsilon)
-#     m.reverse()
-#     m = determinize(m, epsilon)
-#     return m
+
+def minimize(wfst_in, acceptor=False):
+    """
+    Minimize a determinizable machine.
+    [nondestructive]
+    """
+    wfst = wfst_in.copy()
+    wfst.reverse()
+    wfst = determinize(wfst, acceptor=acceptor)
+    wfst.reverse()
+    wfst = determinize(wfst, acceptor=acceptor)
+    return wfst
 
 
 def connect(wfst_in):
