@@ -26,15 +26,15 @@ class CDRewrite():
         elif isinstance(sigma, (SymbolTable, SymbolTableView)):
             sigma = [sym for (sym_id, sym) in sigma]
         # Ensure that bos/eos are in sigma proper.
+        if config.bos not in sigma:
+            msg = (f'Cannot refer to start-of-string context without '
+                   f'{config.bos} in alphabet; adding it.')
+            sigma = [config.bos] + sigma
         if config.eos not in sigma:
             msg = (f'Cannot refer to end-of-string context without '
                    f'{config.eos} in alphabet; adding it.')
             config.logger.info(msg)
             sigma = [config.eos] + sigma
-        if config.bos not in sigma:
-            msg = (f'Cannot refer to start-of-string context without '
-                   f'{config.bos} in alphabet; adding it.')
-            sigma = [config.bos] + sigma
         self.sigma = sigma
         self.isymbols, _ = config.make_symtable(sigma)
         # implicit: osymbols = isymbols

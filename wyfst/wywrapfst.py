@@ -1493,6 +1493,10 @@ class Wfst():
             return self.fst
         return self.fst.copy()
 
+    # Alias.
+    from_pynini = from_fst
+    to_pynini = to_fst
+
     # Print/draw/save/load.
 
     def print_arc(self, q, t):
@@ -2168,7 +2172,9 @@ def _suffix(x, l):
 # Operations on single machines.
 
 # Algorithms.
-# todo: difference(), epsnormalize(),
+# todo: difference(), epsnormalize()
+# todo: optimize(); currently must do
+# wfst -> to_fst() -> optimize() -> from_fst()
 
 
 def minimize(wfst_in, acceptor=False):
