@@ -2368,9 +2368,6 @@ def invert(wfst_in):
 def minimize(wfst_in, acceptor=False):
     """
     Minimize a determinizable machine.
-    Pynini doc: "if the WFST is a transducer .... [it] is determinized and 
-    minimized as if it were an acceptor (and if the WFST has weighted cycles,
-    as if it were an unweighted acceptor)
     References:
     John E. Hopcroft. An n log n algorithm for minimizing the states in
         a finite automaton. In Z. Kohavi, editor, The Theory of Machines and
@@ -2393,7 +2390,11 @@ def optimize(wfst_in):
     """
     Optimize machine by first converting to pynini Fst,
     calling pynini.optimize(), and converting back to Wfst.
-    note: loses state labels and arc features (weights? final strings?)
+    Pynini doc: "if the WFST is a transducer .... [it] is determinized and 
+    minimized as if it were an acceptor (and if the WFST has weighted cycles,
+    as if it were an unweighted acceptor)"
+    note: loses state labels and arc features, performs arc-sum mapping
+    to make the result free of multi-arcs; retains final strings?
     [nondestructive]
     """
     fst = wfst_in.to_fst()
