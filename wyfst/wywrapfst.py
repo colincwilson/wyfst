@@ -954,8 +954,8 @@ class Wfst():
         then adding back all non-dead arcs, as suggested in the 
         OpenFst forum: 
         https://www.openfst.org/twiki/bin/view/Forum/FstForumArchive2014
+        note: ignores arc features when determining arc equality
         note: output can contain duplicate arcs
-        note: ignores any arc features when determining arc equality
         [destructive]
         """
         if not states and not dead_arcs:
@@ -2225,7 +2225,7 @@ def determinize(wfst_in, acceptor=True):
     Applies to transducers after 'encoding' transition labels
     (i.e., performs determinization-as-acceptor), followed
     by 'decoding' the resulting machine.
-    Ignores state labels, weights, final strings, and arc features.
+    note: ignores state labels, weights, final strings, and arc features.
     todo: auto-set acceptor flag
     """
     isymbols = wfst_in.input_symbols().copy()
@@ -2368,6 +2368,17 @@ def invert(wfst_in):
 def minimize(wfst_in, acceptor=False):
     """
     Minimize a determinizable machine.
+    Pynini doc: "if the WFST is a transducer .... [it] is determinized and 
+    minimized as if it were an acceptor (and if the WFST has weighted cycles,
+    as if it were an unweighted acceptor)
+    References:
+    John E. Hopcroft. An n log n algorithm for minimizing the states in
+        a finite automaton. In Z. Kohavi, editor, The Theory of Machines and
+        Computations, pages 189-196. Academic Press, 1971.
+    Mehryar Mohri. Minimization algorithms for sequential transducers.
+        Theoretical Computer Science, 234(1-2): 177-201, 2000.
+    Dominique Revuz. Minimisation of Acyclic Deterministic Automata in Linear
+        Time. Theoretical Computer Science, 92(1): 181-189, 1992.
     [nondestructive]
     """
     wfst = wfst_in.copy()
@@ -2382,8 +2393,7 @@ def optimize(wfst_in):
     """
     Optimize machine by first converting to pynini Fst,
     calling pynini.optimize(), and converting back to Wfst.
-    note: loses state labels and arc features.
-    todo: wfst implementation.
+    note: loses state labels and arc features (weights? final strings?)
     [nondestructive]
     """
     fst = wfst_in.to_fst()
