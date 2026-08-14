@@ -1,4 +1,6 @@
 # Find (quasi-)repeated substrings within string using sliding window comparison.
+# todo: feature-based similarity; discontiguous correspondence
+# todo: use minimal seed_chunk_size (= 1) for short reduplicants
 import re, sys
 import polars as pl
 import edlib
