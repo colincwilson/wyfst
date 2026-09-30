@@ -1550,7 +1550,8 @@ class Wfst():
              **kwargs):
         """
         Write wrapped FST in dot format to file (= source).
-        note: kwargs can include show_weight_one=True
+        default kwargs for pynini.Fst.draw(): show_weight_one=False, title='', width=8.5, height=11.0, vertical=False, ranksep=0.4, nodesep=0.25, fontsize=14, precision=5, float_format='g'
+        # todo: specify dpi for dot command
         """
         fst = self.fst
         state_symbols = pynini.SymbolTable()  # State symbol table.
@@ -1579,7 +1580,7 @@ class Wfst():
 
         suffix = source_out.suffix
         if suffix in fig_types:
-            cmd = f'dot -T{fig} {source_in} > {source_out}'
+            cmd = f'dot -T{fig} -Gdpi=300 {source_in} > {source_out}'
             os.system(cmd)
 
         if show:
@@ -1592,6 +1593,7 @@ class Wfst():
         Draw in ipython / jupyter notebook.
         # note: see draw() for kwarg options.
         # todo: skip middleman file
+        # todo: set display size
         """
         self.draw('.tmp.dot', **kwargs)
         ret = Source.from_file('.tmp.dot')
@@ -3233,6 +3235,7 @@ def shortestdistance(wfst, delta=1e-6, reverse=False):
     'Shortest distance' from the initial state to each
     state (reverse=False, the default) or from each 
     state into the final states (reverse=True).
+    xxx fixdoc; doc return type (see loglinear.py for usage)
     Pynini doc:
     "The shortest distance from p to q is the otimes-sum of 
     the weights of all the paths between p and q."

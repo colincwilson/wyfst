@@ -71,6 +71,13 @@ def print_symtable(symtable_):
         print(f'{sym_id}\t{sym}')
 
 
+def print_fixme():
+    """
+    todo: show all attributes
+    """
+    pass
+
+
 # Alias.
 print_symbols = print_symtable
 
