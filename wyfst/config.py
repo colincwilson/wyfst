@@ -36,6 +36,21 @@ def init(param={}):  # todo: change to **kwargs
     return symtable, syms
 
 
+def info():
+    """
+    Print config attributes.
+    """
+    print(f'epsilon: {epsilon}')
+    print(f'bos: {bos}')
+    print(f'eos: {eos}')
+    print(f'λ: {λ}')
+    print(f'unk: {unk}')
+    print(f'special_syms: {special_syms}')
+    print(f'sigma: {sigma}')
+    print(f'syms: {syms}')
+    print(f'symtable: {symtable}')
+
+
 def make_symtable(sigma=[]):
     """ Create symbol table from symbol collection. """
     symtable = SymbolTable()
@@ -69,13 +84,6 @@ def print_symtable(symtable_):
     syms = get_symbols(symtable_)
     for (sym_id, sym) in syms:
         print(f'{sym_id}\t{sym}')
-
-
-def print_fixme():
-    """
-    todo: show all attributes
-    """
-    pass
 
 
 # Alias.
