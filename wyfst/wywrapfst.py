@@ -1,4 +1,10 @@
 # Finite-state acceptors/transducers with weights and loglinear features.
+# todo: require symbol tables for input and output labels
+# to be initialized outside of Wfst instances, allowing epsilon /
+# bos / eos / other special symbols to be set on a per-machine
+# basis; reroute access to epsilon / bos / eos / etc. through
+# machines instead of global config
+
 import os, re, sys, pickle
 import bisect
 import itertools
@@ -626,8 +632,8 @@ class Wfst():
         Add arc. Accepts id or label for each of 
         src / ilabel / olabel / dest.
         todo: add src/dest states if they do not already exist
-        todo: ensure that weights on epsilon:epsilon 
-        self-transitions are always one (or None).
+        todo: ensure that weights on epsilon:epsilon self-transitions
+        are always one (or None) in the weight semiring.
         [destructive]
         """
         src_id, arc = self.make_arc( \
@@ -1466,8 +1472,8 @@ class Wfst():
         wfst.fst = fst.copy()
         wfst._state2label = dict(self._state2label)
         wfst._label2state = dict(self._label2state)
-        wfst.sig = dict(self.sig)  # todo: deep copy
-        wfst.phi = dict(self.phi)  # todo: deep copy
+        wfst.sig = dict(self.sig)  # todo: deep copy with copy.deepcopy()
+        wfst.phi = dict(self.phi)  # todo: deep copy with copy.deepcopy()
         return wfst
 
     @classmethod
@@ -1546,12 +1552,13 @@ class Wfst():
              acceptor=True,
              portrait=True,
              fig='pdf',
+             dpi=300,
              show=True,
              **kwargs):
         """
         Write wrapped FST in dot format to file (= source).
-        default kwargs for pynini.Fst.draw(): show_weight_one=False, title='', width=8.5, height=11.0, vertical=False, ranksep=0.4, nodesep=0.25, fontsize=14, precision=5, float_format='g'
-        # todo: specify dpi for dot command
+        Default kwargs for pynini.Fst.draw():
+            show_weight_one=False, title='', width=8.5, height=11.0, vertical=False, ranksep=0.4, nodesep=0.25, fontsize=14, precision=5, float_format='g'
         """
         fst = self.fst
         state_symbols = pynini.SymbolTable()  # State symbol table.
@@ -1580,7 +1587,7 @@ class Wfst():
 
         suffix = source_out.suffix
         if suffix in fig_types:
-            cmd = f'dot -T{fig} -Gdpi=300 {source_in} > {source_out}'
+            cmd = f'dot -T{fig} -Gdpi={dpi} {source_in} > {source_out}'
             os.system(cmd)
 
         if show:
@@ -1591,9 +1598,8 @@ class Wfst():
     def view(self, **kwargs):
         """
         Draw in ipython / jupyter notebook.
-        # note: see draw() for kwarg options.
+        See draw() for kwargs.
         # todo: skip middleman file
-        # todo: set display size
         """
         self.draw('.tmp.dot', **kwargs)
         ret = Source.from_file('.tmp.dot')
@@ -3234,8 +3240,8 @@ def shortestdistance(wfst, delta=1e-6, reverse=False):
     """
     'Shortest distance' from the initial state to each
     state (reverse=False, the default) or from each 
-    state into the final states (reverse=True).
-    xxx fixdoc; doc return type (see loglinear.py for usage)
+    state to the (unique) intial state (reverse=True).
+    Returns an array mapping state ids to distances.
     Pynini doc:
     "The shortest distance from p to q is the otimes-sum of 
     the weights of all the paths between p and q."
@@ -3245,6 +3251,24 @@ def shortestdistance(wfst, delta=1e-6, reverse=False):
     """
     return pynini.shortestdistance( \
         wfst.fst, delta=delta, reverse=reverse)
+
+
+def alphas(wfst, delta=1e-6):
+    """
+    Return array of 'alpha' values for states, the shortest distance
+    from the initial state to each state (reverse=False, the default).
+    """
+    return shortestdistance(wfst, delta=delta, reverse=False)
+
+
+def betas(wfst, delta=1e-6):
+    """
+    Return array of 'beta' values for states, the shortest distance
+    from that state to the (unique) initial state (reverse=True).
+    Note: betas[q0] is the global normalization constant for the
+    weighted machine, the sum over all paths.
+    """
+    return shortestdistance(wfst, delta=delta, reverse=True)
 
 
 def shortestpath(wfst, delta=1e-6, ret_type='wfst', **kwargs):
@@ -3419,10 +3443,3 @@ def remove_epsilon(word):
     # Remove from istring or ostring.
     ret = re.sub(f'{epsilon}[ ]*', '', ret)
     return ret
-
-
-# todo: require symbol tables for input and output labels
-# to be initialized outside of Wfst instances, allowing epsilon /
-# bos / eos / other special symbols to be set on a per-machine
-# basis; reroute access to epsilon / bos / eos / etc. through
-# machines instead of global config
